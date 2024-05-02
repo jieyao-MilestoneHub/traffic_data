@@ -77,20 +77,20 @@ def transform_data(input_file, output_file):
     df = df.iloc[:, :3]
     full_range = pd.date_range(start=df.index.min(), end=df.index.max(), freq='D')
     df_filled = df.reindex(full_range).ffill()
-    df_filled.to_csv(output_file, index_label="調價日期")
+    df_filled.to_pickle(output_file)
 
 
 if __name__ == "__main__":
 
-    folder_path = r"C:\Users\USER\Desktop\Develop\traffic_data\raw_data\oil"
+    folder_path = r"C:\Users\USER\Desktop\Develop\traffic_data\raw_data\oil_price"
     csv_name = "gasoline_diesel_fuel.csv"
     file_path = os.path.join(folder_path, csv_name)
     
     get_raw_data(file_path)
     
 
-    input_file = r"C:\Users\USER\Desktop\Develop\traffic_data\raw_data\oil\gasoline_diesel_fuel.csv"
-    folder_path = r"C:\Users\USER\Desktop\Develop\traffic_data\processed_data\oil"
+    input_file = r"C:\Users\USER\Desktop\Develop\traffic_data\raw_data\oil_price\gasoline_diesel_fuel.csv"
+    folder_path = r"C:\Users\USER\Desktop\Develop\traffic_data\processed_data\oil_price"
     csv_name = "gasoline_diesel_fuel.pkl"
     output_file = os.path.join(folder_path, csv_name)
 
