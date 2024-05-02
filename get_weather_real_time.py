@@ -1,5 +1,8 @@
+# follow: https://opendata.cwa.gov.tw/dataset/observation/O-A0001-001
 import requests
 import pandas as pd
+from dotenv import load_dotenv
+import os
 
 class WeatherDataFetcher:
     def __init__(self, api_key):
@@ -62,7 +65,9 @@ class WeatherDataFetcher:
 
 # Usage example
 if __name__ == "__main__":
-    api_key = 'CWA-4CF64319-E1F2-49F2-955E-F9070EA9FC16'
+
+    load_dotenv("./.env")
+    api_key = os.getenv('API_KEY')
     dataset_id = 'O-A0001-001'
     fetcher = WeatherDataFetcher(api_key)
     weather_df = fetcher.get_weather_data(dataset_id)
