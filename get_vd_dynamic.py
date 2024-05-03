@@ -1,66 +1,54 @@
-# import requests
-# import xml.etree.ElementTree as ET
-# import pandas as pd
-
-
-# # 指定 URL
-# url = 'https://tisvcloud.freeway.gov.tw/history/motc20/VDLive.xml'
-
-# # 使用 requests 獲取 XML 數據
-# response = requests.get(url)
-
-# root = ET.fromstring(response.text)
-
-# data = {}
-
-# def extract_elements(element):
-#     for child in element:
-#         if child.text.strip():
-#             if child.tag not in data:
-#                 data[child.tag] = [child.text.strip()]
-#             else:
-#                 data[child.tag].append(child.text.strip())
-#         extract_elements(child)
-
-# extract_elements(root)
-
-# for tag, value in data.items():
-#     print(f"{tag}: {len(value)}")
-
-
 import requests
+from bs4 import BeautifulSoup
 import datetime
+import re
 import os
-from gzip import GzipFile
-from io import BytesIO
 
-# 设置基础 URL 和日期
-base_url = "https://tisvcloud.freeway.gov.tw"
-date = datetime.date.today().strftime('%Y%m%d')  # 例如 '20240430'
+class GCSFileDownloader:
+    def __init__(self, base_url, pattern):
+        self.base_url = base_url
+        self.pattern = re.compile(pattern)
 
-# 创建保存数据的目录
-if not os.path.exists(date):
-    os.makedirs(date)
+    def fetch_files(self):
+        date = datetime.datetime.now()
+        while True:
+            date_str = date.strftime('%Y%m%d')
+            url = f"{self.base_url}{date_str}/"
 
-# 遍历一天中的每一分钟
-for hour in range(24):
-    for minute in range(60):
-        time_str = f"{hour:02d}{minute:02d}"
-        file_url = f"{base_url}/history/motc20/VD/{date}/VDLive_{time_str}.xml.gz"
-        
-        # 发起请求
+            response = requests.get(url)
+            if response.status_code != 200:
+                print(f"No data available for {date_str}")
+                break
+
+            html = BeautifulSoup(response.text, 'html.parser')
+            found = False
+
+            for link in html.find_all('a', href=self.pattern):
+                if self.pattern.match(link.text):
+                    file_url = url + link['href']
+                    save_path = os.path.join(r"C:\Users\USER\Desktop\Develop\traffic_data\raw_data\vd_dynamic", link.text)
+                    self.download_file(file_url, save_path)
+                    found = True
+
+            if not found:
+                print(f"No matching files found on {date_str}")
+                break
+
+            date -= datetime.timedelta(days=1)
+
+    def download_file(self, file_url, file_name):
         response = requests.get(file_url)
         if response.status_code == 200:
-            # 解压数据
-            with GzipFile(fileobj=BytesIO(response.content)) as gz:
-                xml_content = gz.read()
-                
-            # 保存解压后的 XML 文件
-            with open(f"{date}/VDLive_{time_str}.xml", 'wb') as xml_file:
-                xml_file.write(xml_content)
-                
-            print(f"Downloaded and saved VDLive_{time_str}.xml")
+            with open(file_name, 'wb') as file:
+                file.write(response.content)
+            print(f"Successfully downloaded {file_name}")
         else:
-            print(f"Failed to download file for {time_str}")
+            print(f"Failed to download {file_name}")
 
-# 注：运行此脚本前确保网络连接稳定，考虑到数据量可能很大和下载时间较长。
+if __name__ == "__main__":
+
+    # Example
+    base_url = "https://tisvcloud.freeway.gov.tw/history/motc20/VD/"
+    pattern = r"VDLive_\d+\.xml\.gz"
+    downloader = GCSFileDownloader(base_url, pattern)
+    downloader.fetch_files()
