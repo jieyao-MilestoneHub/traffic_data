@@ -1,0 +1,42 @@
+name: CI/CD Pipeline - LR Continual Learning  # CI/CD 管道名稱
+
+on:
+  push:  # 當推送到代碼庫時觸發
+    branches:
+      - dev  # 監聽 dev 分支
+  pull_request:  # 當有 pull request 時觸發
+    branches:
+      - dev  # 監聽 dev 分支
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # 在最新的 Ubuntu 環境上運行
+
+    steps:
+    - name: Checkout repository  # 檢出代碼庫
+      uses: actions/checkout@v2  # 使用 GitHub Actions 官方檢出操作
+
+    - name: Set up Python  # 設置 Python 環境
+      uses: actions/setup-python@v2  # 使用 GitHub Actions 官方 Python 設置操作
+      with:
+        python-version: '3.11.7'  # 指定 Python 版本
+
+    - name: Install dependencies  # 安裝依賴項
+      run: |
+        python -m pip install --upgrade pip  # 升級 pip
+        pip install -r requirements.txt  # 從 requirements.txt 安裝依賴項
+
+    - name: Train Model  # 訓練模型
+      run: |
+        python models/crash_prediction_LR.py  # 執行訓練模型的 Python 腳本
+
+    - name: Deploy Model  # 部署模型
+      run: |
+        python models/deploy_LR.py  # 執行部署模型的 Python 腳本
+
+    - name: Archive Model  # 存檔模型
+      if: success()  # 如果前面的步驟成功，則執行此步驟
+      uses: actions/upload-artifact@v2  # 使用 GitHub Actions 官方上傳工件操作
+      with:
+        name: model  # 工件名稱
+        path: models/models/LR_model.pkl  # 要上傳的模型文件路徑
