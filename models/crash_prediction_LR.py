@@ -29,4 +29,5 @@ print(f'Confusion Matrix:\n{confusion_matrix(y_test, y_pred)}')
 print(f'ROC AUC: {roc_auc}')
 
 # 保存模型
-joblib.dump(model, 'models/LR_model.pkl')
+model_path = r"C:\Users\USER\Desktop\Develop\traffic_data\models\models\LR_model.pkl"
+joblib.dump(model, model_path)
