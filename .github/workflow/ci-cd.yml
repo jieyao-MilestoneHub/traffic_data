@@ -28,7 +28,7 @@ jobs:
 
     - name: Train Model  # 訓練模型
       run: |
-        python models/crash_prediction_LR.py  # 執行訓練模型的 Python 腳本
+        python models/LR.py  # 執行訓練模型的 Python 腳本
 
     - name: Deploy Model  # 部署模型
       run: |
